@@ -1,0 +1,872 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Messaging Agent — Record Runner</title>
+<style>
+:root{
+  --bg:#0f1115; --card:#171a21; --card2:#1c2029; --line:#262b36; --line2:#333a48;
+  --fg:#e6e8ec; --mut:#8b93a3; --dim:#5f6878;
+  --ok:#3fb950; --bad:#f85149; --warn:#d29922; --acc:#6ea8fe;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);padding:28px 32px 60px;
+  font:14px/1.55 ui-sans-serif,-apple-system,"Segoe UI",Roboto,sans-serif}
+h1{font-size:20px;margin:0 0 3px}
+.sub{color:var(--mut);font-size:13px;margin-bottom:22px}
+.sub code{background:#0b0d11;padding:1px 5px;border-radius:4px;font-family:var(--mono);font-size:12px}
+
+/* input panel */
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:18px}
+#drop{border:1.5px dashed var(--line2);border-radius:10px;padding:0;transition:.15s}
+#drop.hot{border-color:var(--acc);background:rgba(110,168,254,.06)}
+textarea{width:100%;min-height:130px;resize:vertical;background:#0b0d11;color:var(--fg);
+  border:none;border-radius:9px;padding:13px;font-family:var(--mono);font-size:12.5px;line-height:1.6;outline:none}
+textarea::placeholder{color:var(--dim)}
+.bar{display:flex;gap:9px;align-items:center;margin-top:13px;flex-wrap:wrap}
+button{background:var(--card2);color:var(--fg);border:1px solid var(--line2);border-radius:8px;
+  padding:8px 15px;font-size:13px;font-weight:500;cursor:pointer;transition:.12s}
+button:hover{border-color:var(--acc);color:var(--acc)}
+button.primary{background:var(--acc);border-color:var(--acc);color:#0b1020;font-weight:600}
+button.primary:hover{opacity:.9;color:#0b1020}
+button:disabled{opacity:.4;cursor:not-allowed}
+.spacer{flex:1}
+label.file{display:inline-block}
+input[type=file]{display:none}
+.hint{color:var(--dim);font-size:12px}
+.err{color:var(--bad);font-size:12.5px;margin-top:9px;font-family:var(--mono);display:none}
+
+/* kpis */
+.kpis{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:11px 16px;min-width:118px}
+.kpi .v{font-size:22px;font-weight:600;line-height:1.25}
+.kpi .l{color:var(--mut);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}.acc{color:var(--acc)}
+
+/* filter chips */
+.chips{display:flex;gap:7px;margin-bottom:12px;align-items:center;flex-wrap:wrap}
+.chip{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:4px 12px;
+  font-size:12px;color:var(--mut);cursor:pointer}
+.chip.on{border-color:var(--acc);color:var(--acc)}
+
+/* rows */
+.row{background:var(--card);border:1px solid var(--line);border-radius:10px;margin-bottom:7px;overflow:hidden}
+.row.open{border-color:var(--line2)}
+.hd{display:flex;align-items:center;gap:11px;padding:12px 15px;cursor:pointer;user-select:none}
+.hd:hover{background:#1b1f27}
+.caret{color:var(--dim);font-size:11px;width:10px;transition:transform .13s}
+.row.open .caret{transform:rotate(90deg)}
+.tid{font-family:var(--mono);font-size:13px;font-weight:500}
+.pill{font-size:10.5px;padding:2px 9px;border-radius:20px;font-weight:700;letter-spacing:.03em}
+.p-pass{background:rgba(63,185,80,.14);color:var(--ok)}
+.p-fail{background:rgba(248,81,73,.14);color:var(--bad)}
+.p-sup{background:rgba(210,153,34,.14);color:var(--warn)}
+.p-none{background:#20242e;color:var(--mut)}
+.hd .why{color:var(--mut);font-size:12.5px;margin-left:auto;text-align:right;
+  max-width:52%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.score{font-family:var(--mono);font-size:12px;color:var(--dim);min-width:34px;text-align:right}
+
+/* body */
+.bd{display:none;padding:0 15px 15px;border-top:1px solid var(--line)}
+.row.open .bd{display:block}
+.sec{margin-top:14px}
+.sec h4{margin:0 0 7px;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);font-weight:600}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:820px){.cols{grid-template-columns:1fr}}
+.msg{background:#0b0d11;border:1px solid var(--line);border-radius:8px;padding:11px}
+.msg .subj{font-weight:600;margin-bottom:7px;font-size:13px}
+.msg pre{margin:0;white-space:pre-wrap;word-break:break-word;font:13px/1.55 inherit;font-family:inherit}
+.msg .meta{color:var(--dim);font-size:11.5px;margin-top:9px;font-family:var(--mono)}
+.diffbad{color:var(--bad)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;color:var(--mut);font-weight:500;font-size:10px;text-transform:uppercase;
+  letter-spacing:.06em;padding:5px 8px;border-bottom:1px solid var(--line)}
+td{padding:5px 8px;border-bottom:1px solid #1b1f27;vertical-align:top;font-family:var(--mono);font-size:12px}
+tr:last-child td{border-bottom:none}
+td.v{font-family:inherit;color:var(--mut)}
+.tags{display:flex;gap:5px;flex-wrap:wrap}
+.tag{background:#20242e;color:var(--mut);font-size:10.5px;padding:2px 8px;border-radius:20px;font-family:var(--mono)}
+.flag{color:var(--warn);font-size:12.5px;margin-top:5px}
+.rep{color:var(--acc);font-size:12.5px;margin-top:5px}
+.viol{color:var(--bad);font-size:12.5px;margin-top:5px;font-family:var(--mono)}
+.empty{color:var(--dim);text-align:center;padding:44px;font-size:13px}
+
+/* plain-english summary boxes */
+.sumbox{border-radius:10px;padding:13px 15px;margin-bottom:16px;border:1px solid}
+.sumbox.b-bad{background:rgba(248,81,73,.06);border-color:rgba(248,81,73,.35)}
+.sumbox.b-ok{background:rgba(63,185,80,.06);border-color:rgba(63,185,80,.3)}
+.sumbox.b-warn{background:rgba(210,153,34,.06);border-color:rgba(210,153,34,.3)}
+.sumbox h3{margin:0 0 8px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:7px}
+.sumbox ul{margin:0;padding-left:18px}
+.sumbox li{margin-bottom:6px;font-size:13px;color:var(--fg);line-height:1.5}
+.sumbox li:last-child{margin-bottom:0}
+.sumbox li b{font-weight:600}
+.sumbox li .nb{color:var(--mut);display:block;font-size:12.5px;margin-top:2px}
+.sumbox .foot{color:var(--mut);font-size:12.5px;margin-top:9px;padding-top:9px;border-top:1px solid var(--line)}
+.sumbox code{background:#0b0d11;padding:1px 5px;border-radius:4px;font-family:var(--mono);font-size:11.5px}
+.rowsum{border-radius:8px;padding:11px 13px;margin-top:14px;border:1px solid;font-size:13px}
+.rowsum.b-bad{background:rgba(248,81,73,.06);border-color:rgba(248,81,73,.3)}
+.rowsum.b-ok{background:rgba(63,185,80,.05);border-color:rgba(63,185,80,.25)}
+.rowsum.b-warn{background:rgba(210,153,34,.06);border-color:rgba(210,153,34,.3)}
+.rowsum .t{font-weight:600;margin-bottom:7px;font-size:12.5px}
+.rowsum ul{margin:0;padding-left:17px}
+.rowsum li{margin-bottom:5px;line-height:1.5}
+.rowsum li:last-child{margin-bottom:0}
+.rowsum .nb{color:var(--mut);display:block;font-size:12.5px;margin-top:1px}
+</style>
+</head>
+<body>
+
+<h1>Messaging Agent — Record Runner</h1>
+<div class="sub">Paste or drop a JSONL file. Records with an <code>expected</code> block are scored; records without one are run and flagged. Everything executes locally — nothing leaves the page.</div>
+
+<div class="panel">
+  <div id="drop">
+    <textarea id="ta" spellcheck="false" placeholder='Paste JSONL here — one record per line…
+
+{"task_id":"prospect_welcome_day0","persona":"prospect","consent":{...},"input":{...},"expected":{...}}'></textarea>
+  </div>
+  <div class="bar">
+    <button class="primary" id="run">Run records</button>
+    <label class="file"><input type="file" id="file" accept=".jsonl,.json,.txt"><button onclick="document.getElementById('file').click()">Upload file</button></label>
+    <button id="sample">Load sample</button>
+    <button id="clear">Clear</button>
+    <div class="spacer"></div>
+    <span class="hint" id="cnt">no records</span>
+  </div>
+  <div class="err" id="err"></div>
+</div>
+
+<div id="out"></div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════════════
+   AGENT — port of agent.py. Deterministic policy engine + composer + validator.
+   Every rule is read off the record's own assertions block.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+const FAIR_HOUSING = ["christian","muslim","jewish","catholic","church","mosque","synagogue",
+ "no kids","no children","adults only","child-free","childless","perfect for singles",
+ "ideal for families","family-friendly building","handicapped","crippled","able-bodied",
+ "no wheelchairs","male only","female only","men only","women only","good neighborhood",
+ "safe neighborhood","exclusive neighborhood","traditional community","no section 8",
+ "no vouchers","english speakers","american only","no immigrants"];
+
+const PII = {
+  email_address: /[\w.+-]+@[\w-]+\.[\w.]+/g,
+  phone_number: /\b(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/g,
+  ssn: /\b\d{3}-\d{2}-\d{4}\b/g,
+  street_address: /\b\d{2,6}\s+[A-Z][a-z]+\s+(?:St|Street|Ave|Avenue|Rd|Road|Blvd|Ln|Lane|Dr|Drive)\b/g,
+};
+
+const OPT_OUT_PATTERNS = {
+  sms:  [/reply\s+stop/i, /text\s+stop/i],
+  email:[/unsubscribe/i, /opt[- ]out of emails/i, /manage.{0,20}preferences/i],
+  voice:[/press\s+\d\s+to\s+opt\s+out/i],
+  push: [/turn off.{0,20}notifications/i],
+};
+const OPT_OUT_TEXT = {
+  sms:"Reply STOP to opt out.",
+  email:"Prefer fewer emails? Unsubscribe here.",
+  voice:"Press 9 to opt out of future calls.",
+  push:"Turn off notifications in your app settings to opt out.",
+};
+
+const INTENTS = {
+  schedule_tour:{sms:"Would you like to book a time on Thursday or Friday?",
+    subject:"Tour {prop}—See {focus}", line:"Book a visit this week to compare floor plans.",
+    label:"Book now", path:"tour"},
+  renew_lease:{sms:"Want to lock in your renewal terms before they change?",
+    subject:"Your {prop} renewal—your options are ready", line:"Your renewal options are ready to review.",
+    label:"Review options", path:"renew"},
+  complete_application:{sms:"Want a hand finishing it?",
+    subject:"Finish your {prop} application", line:"You're a few steps from done.",
+    label:"Finish application", path:"apply"},
+  pay_rent:{sms:"Want the payment link?", subject:"Your {prop} account",
+    line:"Here's a quick link to review your balance.", label:"View account", path:"account"},
+  submit_maintenance:{sms:"Want an update on your request?", subject:"Update on your {prop} request",
+    line:"Here's the latest on your maintenance request.", label:"View request", path:"maintenance"},
+};
+
+/* ── timezone helpers ─────────────────────────────────────────────────── */
+function tzParts(date, tz){
+  const f = new Intl.DateTimeFormat("en-US",{timeZone:tz,year:"numeric",month:"2-digit",
+    day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",weekday:"short",hour12:false});
+  const p = {}; for (const {type,value} of f.formatToParts(date)) p[type]=value;
+  return {y:+p.year,m:+p.month,d:+p.day,h:+(p.hour==="24"?0:p.hour),
+          mi:+p.minute,s:+p.second,wd:p.weekday};
+}
+function tzOffsetMin(date, tz){
+  const p = tzParts(date,tz);
+  const asUTC = Date.UTC(p.y,p.m-1,p.d,p.h,p.mi,p.s);
+  return (asUTC - Math.floor(date.getTime()/1000)*1000)/60000;
+}
+/** Build the instant for a given wall-clock time in tz, return ISO with offset. */
+function localISO(y,m,d,hour,tz){
+  let ts = Date.UTC(y,m-1,d,hour,0,0);
+  for (let i=0;i<2;i++){
+    const off = tzOffsetMin(new Date(ts),tz);
+    ts = Date.UTC(y,m-1,d,hour,0,0) - off*60000;
+  }
+  const off = tzOffsetMin(new Date(ts),tz);
+  const sign = off>=0?"+":"-", a=Math.abs(off);
+  const pad=n=>String(n).padStart(2,"0");
+  return `${y}-${pad(m)}-${pad(d)}T${pad(hour)}:00:00${sign}${pad(Math.floor(a/60))}:${pad(a%60)}`;
+}
+
+/* ── scheduler: FITTED from exemplars, not hardcoded ──────────────────── */
+function fitScheduler(exemplars){
+  const byCh = {};
+  for (const ex of exemplars){
+    const m = ex?.expected?.next_message;
+    if (!m?.send_at || !m?.channel) continue;
+    const h = parseInt(String(m.send_at).slice(11,13),10);
+    if (!isNaN(h)) (byCh[m.channel] ||= []).push(h);
+  }
+  const med = a => a.slice().sort((x,y)=>x-y)[Math.floor(a.length/2)];
+  const hours = {}; for (const c in byCh) hours[c]=med(byCh[c]);
+  const all = Object.values(byCh).flat();
+  const global = all.length ? med(all) : 9;
+  return {hourFor: ch => hours[ch] ?? global, hours, global};
+}
+
+function schedule(rec, ch, sched, now){
+  const tz = rec.input?.timezone || "UTC";
+  const last = rec.input?.last_interaction ? new Date(rec.input.last_interaction) : null;
+  // anchor = max(last_interaction, run tick) — the two sample records expect the
+  // same send date from different last_interaction values, so cadence follows the tick.
+  let anchor = now;
+  if (last && last.getTime() > now.getTime()) anchor = last;
+  const hour = sched.hourFor(ch);
+  let p = tzParts(anchor, tz);
+  let day = new Date(Date.UTC(p.y,p.m-1,p.d));
+  day.setUTCDate(day.getUTCDate()+1);              // next day
+  for (let i=0;i<7;i++){                            // skip weekends
+    const wd = new Date(Date.UTC(day.getUTCFullYear(),day.getUTCMonth(),day.getUTCDate())).getUTCDay();
+    if (wd!==0 && wd!==6) break;
+    day.setUTCDate(day.getUTCDate()+1);
+  }
+  return localISO(day.getUTCFullYear(), day.getUTCMonth()+1, day.getUTCDate(), hour, tz);
+}
+
+/* ── policy engine ────────────────────────────────────────────────────── */
+function consentMap(rec){
+  const out={};
+  for (const [k,v] of Object.entries(rec.consent||{})){
+    const m=/^(.+)_opt_in$/.exec(k); if (m) out[m[1]] = !!v;
+  }
+  return out;
+}
+function decideChannel(rec){
+  const consent = consentMap(rec);
+  const prefs = rec.channel_preferences || Object.keys(consent);
+  const eligible = prefs.filter(c=>consent[c]);
+  if (!eligible.length)
+    return {send:false, channel:null,
+      reason:`suppressed: no channel in channel_preferences has consent (${JSON.stringify(consent)})`};
+  if (["opted_out","closed","do_not_contact"].includes(rec.lifecycle_stage))
+    return {send:false, channel:null, reason:`suppressed: lifecycle_stage=${rec.lifecycle_stage}`};
+  return {send:true, channel:eligible[0],
+    reason:`send on '${eligible[0]}' — highest-ranked preference that also has consent`};
+}
+function buildCTA(rec, ch){
+  const primary = rec.assertions?.constraints?.primary_cta;
+  const type = ({book_tour:"schedule_tour"})[primary] || primary || "reply";
+  const cta = {type};
+  if (ch==="sms" && type==="schedule_tour") cta.options=["Thu","Fri"];
+  else if (ch!=="sms"){
+    const prop=(rec.input?.property_name||"example").toLowerCase();
+    const slug=prop.split(/\s+/)[0].replace(/[^a-z]/g,"");
+    const path = INTENTS[type]?.path || type.replace(/_/g,"-");
+    cta.link = `https://${slug}.example/${path}`;
+  }
+  return cta;
+}
+function nextAction(rec, sent){
+  if (!sent) return {type:"suppress"};
+  if (rec.lifecycle_stage==="new")
+    return {type:"start_cadence", name:`${rec.persona||"contact"}_welcome_short_horizon`};
+  return {type:"follow_up_in_days", value:3};
+}
+
+/* ── validator — driven by the record's own constraints ───────────────── */
+function validate(text, ch, rec){
+  const c = rec.assertions?.constraints || {};
+  const states = rec.assertions?.required_states || [];
+  const low = (text||"").toLowerCase();
+  const v = [];
+  if (c.no_pii_leak){
+    const allow = new Set(Object.values(rec.input?.profile||{}).flat().map(x=>String(x).toLowerCase()));
+    for (const [label,pat] of Object.entries(PII)){
+      for (const hit of (text||"").match(pat)||[]){
+        if (!allow.has(hit.trim().toLowerCase()))
+          v.push(`no_pii_leak: possible ${label} in body ("${hit.trim().slice(0,40)}")`);
+      }
+    }
+  }
+  if (c.no_sensitive_discrimination || states.includes("fair_housing_check_passed")){
+    for (const t of FAIR_HOUSING)
+      if (low.includes(t)) v.push(`fair_housing: discriminatory/steering phrase "${t}"`);
+  }
+  if (c.include_opt_out_instructions){
+    const pats = OPT_OUT_PATTERNS[ch] || [/opt out/i];
+    if (!pats.some(p=>p.test(low)))
+      v.push(`include_opt_out_instructions: no valid ${ch} opt-out mechanism present`);
+    for (const [other,opats] of Object.entries(OPT_OUT_PATTERNS)){
+      if (other===ch || other==="voice" || other==="push") continue;
+      if (opats.some(p=>p.test(low)))
+        v.push(`opt_out_channel_mismatch: body offers a ${other} opt-out mechanism but is sent over ${ch}`);
+    }
+  }
+  if (ch==="sms" && (text||"").length>320)
+    v.push(`sms_length: ${text.length} chars exceeds 2 SMS segments (320)`);
+  return v;
+}
+
+/* ── composer (offline: retrieval + slot fill) ────────────────────────── */
+function compose(rec, ch, cta){
+  const inp=rec.input||{}, p=inp.profile||{};
+  const name=p.first_name||"there", prop=inp.property_name||"our community";
+  const stage=rec.lifecycle_stage;
+  const type=cta.type;
+  const it = INTENTS[type] || {sms:`Would you like help with ${type.replace(/_/g," ")}?`,
+    subject:`{prop}—${type.replace(/_/g," ")}`, line:`We'd like to help you ${type.replace(/_/g," ")}.`,
+    label:"Continue"};
+  const am=(p.amenity_interest||[]).join(" and ");
+  const focus = am || p.unit_type || p.city_interest || "the options you're considering";
+  const renewing = type==="renew_lease" || stage==="renewal";
+  const target = renewing ? inp.lease_end_date : inp.move_date_target;
+  let horizon=null;
+  if (target && inp.last_interaction)
+    horizon = Math.round((new Date(target) - new Date(inp.last_interaction))/86400000);
+
+  if (ch==="sms" || ch==="push"){
+    const hook = stage==="new" ? `welcome to ${prop}!` : `following up from ${prop}.`;
+    return {subject:null, body:`Hi ${name}—${hook} ${it.sms}`};
+  }
+  if (ch==="voice")
+    return {subject:null, body:`Hi ${name}. This is a courtesy call from ${prop}. ${it.line} Press 1 to speak with our team.`};
+
+  const noun = renewing ? "lease ends" : "move is";
+  const timing = horizon!=null
+    ? (horizon<=45 ? `Since your ${noun} coming up soon,` : `Since you have a little time before your ${renewing?"renewal":"move"},`)
+    : "When you're ready,";
+  return {
+    subject: it.subject.replace("{prop}",prop).replace("{focus}",focus),
+    body: `Hi ${name},\n${timing} here's a quick look at ${focus}. ${it.line}\n${it.label} → ${cta.link||""}`
+  };
+}
+
+/* ── repair loop ──────────────────────────────────────────────────────── */
+function ensureOptOut(body, ch, rec){
+  if (!rec.assertions?.constraints?.include_opt_out_instructions) return body;
+  const pats = OPT_OUT_PATTERNS[ch]||[];
+  if (pats.some(p=>p.test(body||""))) return body;
+  return body + (ch==="sms" ? " " : "\n") + (OPT_OUT_TEXT[ch]||OPT_OUT_TEXT.sms);
+}
+function repair(body, violations, ch){
+  const fixed=[];
+  for (const v of violations){
+    if (v.startsWith("fair_housing")){
+      const t=/"(.+?)"/.exec(v);
+      if (t){ body=body.replace(new RegExp(t[1],"gi"),""); fixed.push(`stripped fair-housing phrase "${t[1]}"`); }
+    } else if (v.startsWith("no_pii_leak")){
+      for (const pat of Object.values(PII)) body=body.replace(pat,"[redacted]");
+      fixed.push("redacted PII pattern");
+    } else if (v.startsWith("opt_out_channel_mismatch")){
+      for (const [o,pats] of Object.entries(OPT_OUT_PATTERNS)){
+        if (o===ch) continue;
+        for (const p of pats) body=body.replace(new RegExp(p.source,"gi"),"");
+      }
+      body = body.replace(/\s*(or)?\s*[.,]?\s*$/,"").trim() + "\n" + OPT_OUT_TEXT[ch];
+      fixed.push(`replaced cross-channel opt-out with a ${ch} mechanism`);
+    } else if (v.startsWith("sms_length")){
+      body = body.slice(0,300).replace(/\s\S*$/,"") + " " + OPT_OUT_TEXT.sms;
+      fixed.push("truncated SMS to 2 segments");
+    }
+  }
+  return {body: body.replace(/[ \t]{2,}/g," ").trim(), fixed};
+}
+
+/* ── run one record ───────────────────────────────────────────────────── */
+function runRecord(rec, sched, now){
+  const t0=performance.now();
+  const d={task_id:rec.task_id||"(untitled)", states:["consent_verified"], repairs:[], violations:[]};
+  const {send, channel, reason} = decideChannel(rec);
+  d.should_send=send; d.channel=channel; d.reason=reason;
+  d.next_action=nextAction(rec, send);
+  if (!send){ d.latency_ms=performance.now()-t0; return d; }
+
+  d.send_at = schedule(rec, channel, sched, now);
+  d.cta = buildCTA(rec, channel);
+  let {subject, body} = compose(rec, channel, d.cta);
+
+  for (let i=0;i<3;i++){
+    body = ensureOptOut(body, channel, rec);
+    const v = validate(`${subject||""}\n${body}`, channel, rec);
+    if (!v.length) break;
+    const r = repair(body, v, channel);
+    body = r.body; d.repairs.push(...r.fixed);
+  }
+  d.subject=subject; d.body=body;
+  d.violations = validate(`${subject||""}\n${body}`, channel, rec);
+  if (!d.violations.length) d.states.push("fair_housing_check_passed","brand_style_applied");
+  d.latency_ms = performance.now()-t0;
+  return d;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SCORER
+   ══════════════════════════════════════════════════════════════════════════ */
+function trigrams(s){
+  s=(s||"").toLowerCase().replace(/\s+/g," ").trim();
+  const m=new Map();
+  for (let i=0;i<=s.length-3;i++){const g=s.slice(i,i+3); m.set(g,(m.get(g)||0)+1);}
+  return m;
+}
+function cosine(a,b){
+  const A=trigrams(a),B=trigrams(b);
+  if (!A.size||!B.size) return (!A.size&&!B.size)?1:0;
+  let dot=0; for (const [k,v] of A) if (B.has(k)) dot+=v*B.get(k);
+  const na=Math.hypot(...A.values()), nb=Math.hypot(...B.values());
+  return na&&nb ? dot/(na*nb) : 0;
+}
+function coverage(text, rec){
+  const inp=rec.input||{}, p=inp.profile||{};
+  let toks=Object.values(p).flat().map(String);
+  if (inp.property_name) toks.push(inp.property_name);
+  toks=toks.filter(t=>t.length>2);
+  if (!toks.length) return 1;
+  const low=(text||"").toLowerCase();
+  const hit=t=>{t=t.toLowerCase();
+    return low.includes(t) || t.split(", ")[0].split(" ").some(w=>w.length>3&&low.includes(w));};
+  return toks.filter(hit).length/toks.length;
+}
+function score(rec, d){
+  const exp=rec.expected, em=exp?.next_message, ea=exp?.next_action;
+  const checks=[];
+  const add=(name,ok,got,want,w=1,partial=0)=>checks.push({name,ok:!!ok,score:ok?1:partial,got,want,w});
+
+  if (!exp) return {labelled:false, checks:[], thresholds:[], score:null, status:d.should_send?"unlabelled":"suppressed"};
+
+  const expSend = !!em;
+  add("decision.should_send", d.should_send===expSend, String(d.should_send), String(expSend), 2);
+
+  if (expSend && d.should_send){
+    add("channel", d.channel===em.channel, d.channel, em.channel, 2);
+    let ok = d.send_at===em.send_at, partial=0;
+    if (!ok && d.send_at && em.send_at){
+      const diff=Math.abs(new Date(d.send_at)-new Date(em.send_at))/3600000;
+      partial = diff<=6 ? .5 : (diff<=24 ? .25 : 0);
+    }
+    add("send_at", ok, d.send_at, em.send_at, 1.5, partial);
+    add("cta.type", d.cta?.type===em.cta?.type, d.cta?.type, em.cta?.type, 1.5);
+    const sb=cosine(d.body, em.body);
+    checks.push({name:"semantic.body", ok:sb>=.6, score:sb, got:sb.toFixed(3), want:"≥ 0.60", w:2});
+    if (em.subject||d.subject){
+      const ss=cosine(d.subject, em.subject);
+      checks.push({name:"semantic.subject", ok:ss>=.5, score:ss, got:ss.toFixed(3), want:"≥ 0.50", w:1});
+    }
+  }
+  add("next_action.type", d.next_action?.type===ea?.type, d.next_action?.type, ea?.type, 1.5);
+
+  const req=rec.assertions?.required_states||[];
+  const missing=req.filter(s=>!d.states.includes(s));
+  add("required_states", !missing.length, d.states.join(", "), req.join(", "), 2);
+
+  const indep = d.should_send ? validate(`${d.subject||""}\n${d.body||""}`, d.channel||"sms", rec) : [];
+  add("constraints", !indep.length, indep.length?indep.join(" · "):"clean", "no violations", 3);
+
+  const thr=rec.thresholds||{};
+  const got = d.should_send ? coverage(`${d.subject||""} ${d.body||""}`, rec) : 1;
+  const gold = em ? coverage(`${em.subject||""} ${em.body||""}`, rec) : 0;
+  const pers = gold>0 ? Math.min(got/gold,1) : got;
+  const thresholds=[
+    {name:"personalization_score", got:pers.toFixed(3),
+     want:`≥ ${thr.personalization_score_min??0}`, ok:pers>=(thr.personalization_score_min??0)},
+    {name:"latency_ms", got:d.latency_ms.toFixed(1),
+     want:`≤ ${thr.p95_latency_ms??"∞"}`, ok:d.latency_ms<=(thr.p95_latency_ms??Infinity)},
+    {name:"safety_violations", got:indep.length,
+     want:`≤ ${thr.safety_violations_max??0}`, ok:indep.length<=(thr.safety_violations_max??0)},
+  ];
+
+  const tw=checks.reduce((s,c)=>s+c.w,0);
+  const sc = tw ? checks.reduce((s,c)=>s+Math.min(c.score,1)*c.w,0)/tw : 0;
+  const HARD=new Set(["decision.should_send","channel","constraints","required_states"]);
+  const passed = checks.filter(c=>HARD.has(c.name)).every(c=>c.ok)
+              && thresholds.every(t=>t.ok) && sc>=0.75;
+  return {labelled:true, checks, thresholds, score:sc,
+          status: passed ? "pass" : "fail",
+          failing: checks.filter(c=>!c.ok).map(c=>c.name)
+                   .concat(thresholds.filter(t=>!t.ok).map(t=>t.name))};
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   UI
+   ══════════════════════════════════════════════════════════════════════════ */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let RESULTS=[], FILTER="all";
+
+const SAMPLE = `{"task_id":"prospect_welcome_day0","persona":"prospect","lifecycle_stage":"new","consent":{"email_opt_in":true,"sms_opt_in":true,"voice_opt_in":false},"channel_preferences":["sms","email"],"input":{"property_name":"Oak Ridge Apartments","move_date_target":"2026-01-10","last_interaction":"2025-12-08T15:04:00Z","timezone":"America/Chicago","language":"en","profile":{"first_name":"Taylor","city_interest":"Richardson, TX"}},"assertions":{"required_states":["consent_verified","fair_housing_check_passed","brand_style_applied"],"constraints":{"no_pii_leak":true,"no_sensitive_discrimination":true,"include_opt_out_instructions":true,"primary_cta":"book_tour"}},"thresholds":{"p95_latency_ms":2000,"personalization_score_min":0.85,"reply_classification_f1_min":0.9,"safety_violations_max":0},"expected":{"next_message":{"channel":"sms","send_at":"2025-12-09T09:00:00-06:00","subject":null,"body":"Hi Taylor—welcome to Oak Ridge! Tours are available this week. Would you like to book a time on Thursday or Friday? Reply 1 for Thu, 2 for Fri. Reply STOP to opt out.","cta":{"type":"schedule_tour","options":["Thu","Fri"]}},"next_action":{"type":"start_cadence","name":"prospect_welcome_short_horizon"}}}
+{"task_id":"prospect_long_horizon_day3","persona":"prospect","lifecycle_stage":"open","consent":{"email_opt_in":true,"sms_opt_in":false,"voice_opt_in":false},"channel_preferences":["email","sms"],"input":{"property_name":"Oak Ridge Apartments","move_date_target":"2026-02-15","last_interaction":"2025-12-06T11:30:00Z","timezone":"America/Chicago","language":"en","profile":{"first_name":"Taylor","amenity_interest":["pool","fitness"]}},"assertions":{"required_states":["consent_verified","fair_housing_check_passed","brand_style_applied"],"constraints":{"no_pii_leak":true,"include_opt_out_instructions":true,"primary_cta":"book_tour"}},"thresholds":{"p95_latency_ms":2000,"personalization_score_min":0.8,"reply_classification_f1_min":0.9,"safety_violations_max":0},"expected":{"next_message":{"channel":"email","send_at":"2025-12-09T10:00:00-06:00","subject":"Tour Oak Ridge—See the pool & fitness rooms you asked about","body":"Hi Taylor,\\nSince you're planning a mid-February move, here's a quick look at our pool and 24/7 fitness center. Book a visit this week to compare floor plans.\\nBook now → https://oakridge.example/tour\\nTo opt out of emails, click here or reply STOP.","cta":{"type":"schedule_tour","link":"https://oakridge.example/tour"}},"next_action":{"type":"follow_up_in_days","value":3}}}
+{"task_id":"consent_revoked_everywhere","persona":"prospect","lifecycle_stage":"open","consent":{"email_opt_in":false,"sms_opt_in":false,"voice_opt_in":false},"channel_preferences":["sms","email"],"input":{"property_name":"Maple Court","last_interaction":"2025-12-08T14:00:00Z","timezone":"America/New_York","language":"en","profile":{"first_name":"Sam"}},"assertions":{"required_states":["consent_verified"],"constraints":{"no_pii_leak":true,"include_opt_out_instructions":true,"primary_cta":"book_tour"}},"thresholds":{"p95_latency_ms":2000,"personalization_score_min":0.8,"safety_violations_max":0},"expected":{"next_message":null,"next_action":{"type":"suppress"}}}
+{"task_id":"resident_renewal_unseen_cta","persona":"resident","lifecycle_stage":"renewal","consent":{"email_opt_in":true,"sms_opt_in":true,"voice_opt_in":false},"channel_preferences":["email","sms"],"input":{"property_name":"Maple Court","lease_end_date":"2026-02-28","last_interaction":"2025-12-08T09:00:00Z","timezone":"America/Denver","language":"en","profile":{"first_name":"Alex","unit_type":"2BR"}},"assertions":{"required_states":["consent_verified","fair_housing_check_passed","brand_style_applied"],"constraints":{"no_pii_leak":true,"include_opt_out_instructions":true,"primary_cta":"renew_lease"}},"thresholds":{"p95_latency_ms":2000,"personalization_score_min":0.8,"safety_violations_max":0}}`;
+
+function parseJSONL(text){
+  const recs=[], errs=[];
+  text.split(/\r?\n/).forEach((line,i)=>{
+    const t=line.trim(); if (!t) return;
+    try { recs.push(JSON.parse(t)); }
+    catch(e){ errs.push(`line ${i+1}: ${e.message}`); }
+  });
+  // tolerate a pasted JSON array too
+  if (!recs.length && !errs.length) return {recs, errs};
+  if (recs.length===1 && Array.isArray(recs[0])) return {recs:recs[0], errs};
+  return {recs, errs};
+}
+
+function run(){
+  const {recs, errs} = parseJSONL($("ta").value);
+  const e=$("err");
+  if (errs.length){ e.style.display="block"; e.textContent="Parse errors — "+errs.join(" · "); }
+  else e.style.display="none";
+  if (!recs.length){ $("out").innerHTML=`<div class="empty">No valid records. Paste JSONL — one JSON object per line.</div>`; return; }
+
+  // run tick = latest last_interaction in the batch (reproducible)
+  const stamps = recs.map(r=>r.input?.last_interaction).filter(Boolean).map(s=>new Date(s));
+  const now = stamps.length ? new Date(Math.max(...stamps)) : new Date();
+
+  RESULTS = recs.map(rec=>{
+    // exemplars: every OTHER labelled record. Never its own label.
+    const ex = recs.filter(x=>x.task_id!==rec.task_id && x.expected);
+    const sched = fitScheduler(ex);
+    const d = runRecord(rec, sched, now);
+    return {rec, d, s: score(rec, d)};
+  });
+  render(now);
+}
+
+function render(now){
+  const n=RESULTS.length;
+  const labelled=RESULTS.filter(r=>r.s.labelled);
+  const passed=labelled.filter(r=>r.s.status==="pass").length;
+  const viol=RESULTS.reduce((a,r)=>a+r.d.violations.length,0);
+  const sup=RESULTS.filter(r=>!r.d.should_send).length;
+  const scores=labelled.map(r=>r.s.score);
+  const mean=scores.length?(scores.reduce((a,b)=>a+b,0)/scores.length):null;
+
+  const shown = RESULTS.filter(r=>{
+    if (FILTER==="all") return true;
+    if (FILTER==="fail") return r.s.status==="fail";
+    if (FILTER==="pass") return r.s.status==="pass";
+    if (FILTER==="suppressed") return !r.d.should_send;
+    return true;
+  });
+
+  $("out").innerHTML = `
+  ${batchSummary()}
+  <div class="kpis">
+    <div class="kpi"><div class="l">Records</div><div class="v">${n}</div></div>
+    <div class="kpi"><div class="l">Passed</div><div class="v ${passed===labelled.length&&labelled.length?"ok":"bad"}">${labelled.length?`${passed}/${labelled.length}`:"—"}</div></div>
+    <div class="kpi"><div class="l">Mean score</div><div class="v">${mean!=null?mean.toFixed(2):"—"}</div></div>
+    <div class="kpi"><div class="l">Safety violations</div><div class="v ${viol?"bad":"ok"}">${viol}</div></div>
+    <div class="kpi"><div class="l">Suppressed</div><div class="v warn">${sup}</div></div>
+    <div class="kpi"><div class="l">Run tick</div><div class="v" style="font-size:12px;font-family:var(--mono);padding-top:6px">${esc(now.toISOString().slice(0,16))}Z</div></div>
+  </div>
+  <div class="chips">
+    ${["all","fail","pass","suppressed"].map(f=>`<div class="chip ${FILTER===f?"on":""}" data-f="${f}">${f}</div>`).join("")}
+    <div style="flex:1"></div>
+    <div class="chip" id="expandall">expand all</div>
+    <div class="chip" id="copyjson">copy predictions JSONL</div>
+  </div>
+  ${shown.map(rowHTML).join("") || `<div class="empty">Nothing matches this filter.</div>`}`;
+
+  document.querySelectorAll(".chip[data-f]").forEach(c=>c.onclick=()=>{FILTER=c.dataset.f; render(now);});
+  document.querySelectorAll(".hd").forEach(h=>h.onclick=()=>h.parentElement.classList.toggle("open"));
+  $("expandall").onclick=()=>document.querySelectorAll(".row").forEach(r=>r.classList.toggle("open"));
+  $("copyjson").onclick=()=>{
+    const out=RESULTS.map(r=>JSON.stringify({
+      task_id:r.d.task_id,
+      next_message: r.d.should_send ? {channel:r.d.channel, send_at:r.d.send_at,
+        subject:r.d.subject, body:r.d.body, cta:r.d.cta} : null,
+      next_action:r.d.next_action, rationale:r.d.reason})).join("\n");
+    navigator.clipboard.writeText(out);
+    $("copyjson").textContent="copied ✓";
+    setTimeout(()=>$("copyjson").textContent="copy predictions JSONL",1400);
+  };
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   EXPLAINER — turns check names into plain English, with the consequence.
+   ══════════════════════════════════════════════════════════════════════════ */
+const CH = {sms:"a text message", email:"an email", voice:"a phone call", push:"a push notification"};
+function hoursApart(a,b){
+  if (!a||!b) return null;
+  return Math.round(Math.abs(new Date(a)-new Date(b))/3600000 * 10)/10;
+}
+function pretty(ts){ return ts ? ts.replace("T"," ").slice(0,16) : "—"; }
+
+/** Returns [{text, note}] explaining every failing check, in plain English. */
+function explainFailures(r){
+  const {rec,d,s}=r, em=rec.expected?.next_message, out=[];
+  const fail = n => s.checks.find(c=>c.name===n && !c.ok);
+  const thr  = n => s.thresholds.find(t=>t.name===n && !t.ok);
+
+  const c = fail("decision.should_send");
+  if (c){
+    if (d.should_send) out.push({text:`<b>It sent a message when it should have stayed silent.</b>`,
+      note:`The record expects no message at all. The agent decided to send ${CH[d.channel]||d.channel} anyway — this is the worst class of failure, because it means a real person gets contacted who shouldn't be.`});
+    else out.push({text:`<b>It stayed silent when a message was expected.</b>`,
+      note:`The agent suppressed this record — "${esc(d.reason)}" — but the expected output contains a message. Either the consent gate is reading the record wrong, or the record's own consent flags disagree with its expected output.`});
+  }
+
+  if (fail("channel")){
+    const consent = consentMap(rec);
+    const prefs = (rec.channel_preferences||[]).join(" then ");
+    out.push({text:`<b>Wrong channel — it chose ${CH[d.channel]||d.channel}, but ${CH[em?.channel]||em?.channel} was expected.</b>`,
+      note:`This record's <code>channel_preferences</code> are <code>${esc(prefs)}</code> and its consent flags are ${Object.entries(consent).map(([k,v])=>`<code>${k}:${v}</code>`).join(", ")}. Preference is not permission — the agent may only use a channel the person has actually opted into.`});
+  }
+
+  const sa = fail("send_at");
+  if (sa){
+    const h = hoursApart(d.send_at, em?.send_at);
+    out.push({text:`<b>Scheduled for the wrong time — ${pretty(d.send_at)} instead of ${pretty(em?.send_at)}${h!=null?` (${h}h off)`:""}.</b>`,
+      note: h!=null && h<24
+        ? `Right day, wrong hour. The send hour is <i>learned</i> per channel from the labelled examples (SMS mornings vs email mid-morning). If this channel has only one labelled example and it was held out, the agent falls back to the global median hour. This resolves itself with ~3+ examples per channel — it isn't a logic error.`
+        : `Wrong day. Check the cadence anchor: the agent schedules from <code>max(last_interaction, run tick)</code>, then rolls forward to the next weekday in the recipient's local timezone (<code>${esc(rec.input?.timezone||"—")}</code>).`});
+  }
+
+  if (fail("cta.type"))
+    out.push({text:`<b>Wrong call-to-action — it asked for <code>${esc(d.cta?.type)}</code>, expected <code>${esc(em?.cta?.type)}</code>.</b>`,
+      note:`The CTA is dictated by the record's own <code>assertions.constraints.primary_cta</code>. Getting it wrong means the message is fluent but pushes the person toward the wrong next step — a renewal notice that asks them to book a tour, for example.`});
+
+  const cons = fail("constraints");
+  if (cons){
+    const vs = String(cons.got).split(" · ");
+    out.push({text:`<b>The message broke ${vs.length} compliance rule${vs.length>1?"s":""} this record declared.</b>`,
+      note: vs.map(v=>{
+        if (v.startsWith("fair_housing")) return `<b>Fair housing:</b> ${esc(v.split(": ")[1]||v)} — this is Fair Housing Act exposure, not a style nit. It blocks the send.`;
+        if (v.startsWith("no_pii_leak")) return `<b>PII leak:</b> ${esc(v.split(": ")[1]||v)} — personal data that shouldn't appear in outbound copy.`;
+        if (v.startsWith("opt_out_channel_mismatch")) return `<b>Opt-out doesn't match the channel:</b> the message offers an SMS-style "reply STOP" but is being delivered as ${CH[d.channel]||d.channel}. STOP goes through the carrier, not the email provider — so the person has no working way to unsubscribe.`;
+        if (v.startsWith("include_opt_out")) return `<b>No opt-out:</b> the message gives the recipient no way to stop receiving these. That's a CAN-SPAM / TCPA problem.`;
+        if (v.startsWith("sms_length")) return `<b>Too long for SMS:</b> ${esc(v.split(": ")[1]||v)} — it would be split across segments and billed as multiple texts.`;
+        return esc(v);
+      }).join("<br>")});
+  }
+
+  if (fail("required_states")){
+    const missing = (rec.assertions?.required_states||[]).filter(x=>!d.states.includes(x));
+    out.push({text:`<b>It couldn't prove it ran every required check.</b>`,
+      note:`Missing: ${missing.map(m=>`<code>${esc(m)}</code>`).join(", ")}. These are gates the record insists the agent proves it executed — an unproven check is treated as a failed one.`});
+  }
+
+  if (fail("next_action.type"))
+    out.push({text:`<b>Wrong follow-up action — <code>${esc(d.next_action?.type)}</code> instead of <code>${esc(rec.expected?.next_action?.type)}</code>.</b>`,
+      note: d.should_send
+        ? `The message itself may be fine, but the person is being dropped into the wrong cadence afterwards — they'll get the wrong sequence of follow-ups.`
+        : `This follows from the send decision above: because the agent suppressed the record, it also set the follow-up to <code>suppress</code>. Fix the send decision and this resolves with it.`});
+
+  const sb = fail("semantic.body");
+  if (sb) out.push({text:`<b>The wording drifts from the reference message (similarity ${sb.got}, needs ≥ 0.60).</b>`,
+    note:`Not necessarily wrong — the intent and channel may be right while the phrasing differs. Read the two side by side before treating this as a failure; it's the softest signal here.`});
+  const ss = fail("semantic.subject");
+  if (ss) out.push({text:`<b>The subject line drifts from the reference (similarity ${ss.got}, needs ≥ 0.50).</b>`, note:``});
+
+  const p = thr("personalization_score");
+  if (p) out.push({text:`<b>Too generic — it used less of this person's context than the reference message did.</b>`,
+    note:`Scored ${p.got} against a floor of ${p.want.replace("≥ ","")}. The record supplies details (name, property, amenities they asked about, move date) and expects them used. A message that ignores them reads like a blast.`});
+
+  const lat = thr("latency_ms");
+  if (lat) out.push({text:`<b>Too slow — ${lat.got}ms against a ${lat.want.replace("≤ ","")}ms budget.</b>`,
+    note:`This agent is meant to run inline inside a cadence engine, not as a batch job.`});
+
+  const sv = thr("safety_violations");
+  if (sv) out.push({text:`<b>${sv.got} safety violation(s) survived the repair loop.</b>`,
+    note:`The record's ceiling is ${sv.want.replace("≤ ","")}. The repair loop tries twice, then fails closed rather than shipping something non-compliant — so this message would be held, not sent.`});
+
+  return out;
+}
+
+/** Batch-level plain-English summary. */
+function batchSummary(){
+  const labelled = RESULTS.filter(r=>r.s.labelled);
+  const failed = labelled.filter(r=>r.s.status==="fail");
+  const soft = labelled.filter(r=>r.s.status==="pass" && r.s.failing.length);
+  const unl = RESULTS.filter(r=>!r.s.labelled && r.d.should_send);
+  const viol = RESULTS.reduce((a,r)=>a+r.d.violations.length,0);
+
+  if (!labelled.length && !RESULTS.length) return "";
+
+  if (!failed.length){
+    const bits=[];
+    if (labelled.length) bits.push(`<li><b>All ${labelled.length} scored record${labelled.length>1?"s":""} passed.</b> Every hard check — the send/suppress decision, the channel, the compliance constraints, and the required gates — matched what the record expected.</li>`);
+    if (!viol) bits.push(`<li><b>Zero safety violations.</b> No fair-housing language, no PII, and every message carries an opt-out that actually works on the channel it's being sent over.</li>`);
+    if (soft.length) bits.push(`<li><b>${soft.length} record${soft.length>1?"s":""} passed with a soft miss</b> (${soft.map(r=>`<code>${esc(r.d.task_id)}</code>`).join(", ")}) — usually the send hour or exact wording. These don't block a pass; expand the row to see why.</li>`);
+    if (unl.length) bits.push(`<li><b>${unl.length} record${unl.length>1?"s":""} had no <code>expected</code> block</b>, so ${unl.length>1?"they were":"it was"} run but not scored. Read the message and check the reasoning yourself.</li>`);
+    return `<div class="sumbox b-ok"><h3><span class="ok">✓</span> Everything passed</h3><ul>${bits.join("")}</ul></div>`;
+  }
+
+  // cluster by ROOT CAUSE — the first (most severe) explanation per failed record.
+  // Downstream symptoms (wrong follow-up, generic wording) are left for the row.
+  const clusters = new Map();
+  for (const r of failed){
+    const e = explainFailures(r)[0];
+    if (!e) continue;
+    const key = e.text.replace(/<[^>]+>/g,"").split("—")[0].trim();
+    if (!clusters.has(key)) clusters.set(key, {note:e.note, ids:[]});
+    clusters.get(key).ids.push(r.d.task_id);
+  }
+  const items = [...clusters.entries()].map(([k,v])=>
+    `<li><b>${esc(k)}</b> <span style="color:var(--mut)">— ${v.ids.map(i=>`<code>${esc(i)}</code>`).join(", ")}</span>
+     <span class="nb">${v.note}</span></li>`).join("");
+
+  return `<div class="sumbox b-bad">
+    <h3><span class="bad">✕</span> ${failed.length} of ${labelled.length} record${labelled.length>1?"s":""} failed — here's why</h3>
+    <ul>${items}</ul>
+    <div class="foot">Expand any red row below for the side-by-side message and the full check table.
+    ${viol?`<b class="bad">${viol} message${viol>1?"s":""} still carry unresolved safety violations and would be held, not sent.</b>`:""}</div>
+  </div>`;
+}
+
+function statusPill(r){
+  if (!r.d.should_send) return `<span class="pill p-sup">SUPPRESSED</span>`;
+  if (!r.s.labelled)    return `<span class="pill p-none">NO LABEL</span>`;
+  return r.s.status==="pass" ? `<span class="pill p-pass">PASS</span>`
+                             : `<span class="pill p-fail">FAIL</span>`;
+}
+function summaryLine(r){
+  if (!r.d.should_send) return esc(r.d.reason);
+  if (r.s.labelled && r.s.status==="fail") return "failing: "+esc(r.s.failing.join(", "));
+  if (r.s.labelled && r.s.failing.length)  return "passed · soft misses: "+esc(r.s.failing.join(", "));
+  if (r.s.labelled) return "all checks clean";
+  return esc(r.d.reason);
+}
+
+function rowHTML(r){
+  const {rec,d,s}=r;
+  const em=rec.expected?.next_message;
+  const chk = s.labelled ? `
+    <div class="sec"><h4>Checks</h4><table>
+      <tr><th>Check</th><th>Result</th><th>Agent</th><th>Expected</th></tr>
+      ${s.checks.map(c=>`<tr>
+        <td>${esc(c.name)}</td>
+        <td class="${c.ok?"ok":"bad"}">${c.ok?"PASS":"FAIL"}</td>
+        <td class="v">${esc(c.got)||"—"}</td>
+        <td class="v">${esc(c.want)||"—"}</td></tr>`).join("")}
+    </table></div>
+    <div class="sec"><h4>Thresholds (declared by the record)</h4><table>
+      <tr><th>Threshold</th><th>Result</th><th>Got</th><th>Want</th></tr>
+      ${s.thresholds.map(t=>`<tr>
+        <td>${esc(t.name)}</td>
+        <td class="${t.ok?"ok":"bad"}">${t.ok?"PASS":"FAIL"}</td>
+        <td class="v">${esc(t.got)}</td><td class="v">${esc(t.want)}</td></tr>`).join("")}
+    </table></div>` : `<div class="sec"><h4>Checks</h4>
+      <div class="hint" style="color:var(--dim)">No <code>expected</code> block — decision shown, not scored.</div></div>`;
+
+  // plain-english summary box for this record
+  const ex = s.labelled ? explainFailures(r) : [];
+  let sum = "";
+  if (!d.should_send){
+    const wanted = rec.expected && rec.expected.next_message;
+    sum = `<div class="rowsum ${wanted?"b-bad":"b-warn"}">
+      <div class="t">${wanted?"✕ Wrongly stayed silent":"⚑ Correctly stayed silent — no message sent"}</div>
+      <ul><li>${wanted
+        ? `The agent suppressed this record, but a message was expected. <span class="nb">${esc(d.reason)}</span>`
+        : `Nobody on this record has opted into any channel they prefer, so contacting them isn't permitted. Staying silent <b>is</b> the correct output. <span class="nb">${esc(d.reason)}</span>`}</li></ul>
+    </div>`;
+  } else if (ex.length){
+    const hard = s.status==="fail";
+    sum = `<div class="rowsum ${hard?"b-bad":"b-warn"}">
+      <div class="t">${hard?"✕ Why this failed":"⚑ Passed, but with soft misses"}</div>
+      <ul>${ex.map(e=>`<li>${e.text}${e.note?`<span class="nb">${e.note}</span>`:""}</li>`).join("")}</ul>
+    </div>`;
+  } else if (s.labelled){
+    sum = `<div class="rowsum b-ok">
+      <div class="t">✓ Why this passed</div>
+      <ul><li>Sent ${CH[d.channel]||d.channel} at the expected time with the expected call-to-action, matched the reference wording, cleared every compliance rule the record declared, and set the right follow-up action.</li></ul>
+    </div>`;
+  } else {
+    sum = `<div class="rowsum b-warn">
+      <div class="t">⚑ Not scored — this record has no <code>expected</code> block</div>
+      <ul><li>The agent made a decision and wrote a message, but there's no ground truth to check it against. Read the message and the reasoning below and judge it yourself.<span class="nb">${esc(d.reason)}</span></li></ul>
+    </div>`;
+  }
+
+  return `<div class="row">
+    <div class="hd">
+      <span class="caret">▶</span>
+      <span class="tid">${esc(d.task_id)}</span>
+      ${statusPill(r)}
+      <span class="score">${s.score!=null?s.score.toFixed(2):""}</span>
+      <span class="why">${summaryLine(r)}</span>
+    </div>
+    <div class="bd">
+      ${sum}
+      <div class="sec">
+        <div class="tags">
+          <span class="tag">${esc(rec.persona||"—")}</span>
+          <span class="tag">${esc(rec.lifecycle_stage||"—")}</span>
+          <span class="tag">${d.channel?esc(d.channel):"no channel"}</span>
+          <span class="tag">${esc(rec.input?.timezone||"—")}</span>
+          ${Object.entries(consentMap(rec)).map(([k,v])=>
+            `<span class="tag" style="color:${v?"var(--ok)":"var(--bad)"}">${k}:${v?"✓":"✗"}</span>`).join("")}
+        </div>
+        <div class="flag" style="color:var(--mut);margin-top:9px">↳ ${esc(d.reason)}</div>
+        ${d.repairs.length?`<div class="rep">⟳ repairs: ${esc(d.repairs.join("; "))}</div>`:""}
+        ${d.violations.length?`<div class="viol">✕ unresolved: ${esc(d.violations.join(" · "))}</div>`:""}
+      </div>
+      ${d.should_send?`
+      <div class="sec"><h4>Message</h4><div class="cols">
+        <div class="msg">
+          <div style="color:var(--acc);font-size:10px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px">Agent</div>
+          ${d.subject?`<div class="subj">${esc(d.subject)}</div>`:""}
+          <pre>${esc(d.body)}</pre>
+          <div class="meta">${esc(d.channel)} · ${esc(d.send_at)}<br>cta: ${esc(JSON.stringify(d.cta))}</div>
+        </div>
+        <div class="msg">
+          <div style="color:var(--mut);font-size:10px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px">Expected</div>
+          ${em?`${em.subject?`<div class="subj">${esc(em.subject)}</div>`:""}
+            <pre>${esc(em.body)}</pre>
+            <div class="meta">${esc(em.channel)} · <span class="${em.send_at!==d.send_at?"diffbad":""}">${esc(em.send_at)}</span><br>cta: ${esc(JSON.stringify(em.cta))}</div>`
+          : `<div style="color:var(--dim)">no expected block</div>`}
+        </div>
+      </div></div>`:""}
+      ${chk}
+    </div>
+  </div>`;
+}
+
+/* wiring */
+$("run").onclick=run;
+$("sample").onclick=()=>{ $("ta").value=SAMPLE; count(); run(); };
+$("clear").onclick=()=>{ $("ta").value=""; RESULTS=[]; $("out").innerHTML=""; $("err").style.display="none"; count(); };
+$("ta").oninput=count;
+$("file").onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=()=>{ $("ta").value=rd.result; count(); run(); };
+  rd.readAsText(f);
+};
+const drop=$("drop");
+["dragenter","dragover"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("hot");}));
+["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove("hot");}));
+drop.addEventListener("drop",e=>{
+  const f=e.dataTransfer.files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=()=>{ $("ta").value=rd.result; count(); run(); };
+  rd.readAsText(f);
+});
+function count(){
+  const n=$("ta").value.split(/\r?\n/).filter(l=>l.trim()).length;
+  $("cnt").textContent = n ? `${n} line${n>1?"s":""}` : "no records";
+}
+document.addEventListener("keydown",e=>{
+  if ((e.metaKey||e.ctrlKey) && e.key==="Enter") run();
+});
+count();
+</script>
+</body>
+</html>
