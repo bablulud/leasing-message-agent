@@ -1,0 +1,89 @@
+<svg viewBox="0 0 900 810" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif">
+<rect x="0" y="0" width="900" height="810" fill="#0f1115"/>
+<defs>
+<marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9aa3b2"/></marker>
+<marker id="arok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3fb950"/></marker>
+<marker id="arno" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f85149"/></marker>
+</defs>
+
+<text x="30" y="38" font-size="22" font-weight="700" fill="#e6e8ec">Which part is the "smart AI" — and which part just follows rules?</text>
+
+<rect x="30" y="54" width="840" height="42" rx="10" fill="none" stroke="#9aa3b2" stroke-width="1"/>
+<circle cx="52" cy="75" r="7" fill="#6ea8fe"/>
+<text x="66" y="80" font-size="13" fill="#e6e8ec"><tspan font-weight="700">🧠 LLM</tspan> — the word-writing AI (writes sentences)</text>
+<circle cx="392" cy="75" r="7" fill="#d29922"/>
+<text x="406" y="80" font-size="13" fill="#e6e8ec"><tspan font-weight="700">📈 LEARNS from examples</tspan> — copies patterns from the cards</text>
+<circle cx="720" cy="75" r="7" fill="#9aa3b2"/>
+<text x="734" y="80" font-size="13" fill="#e6e8ec"><tspan font-weight="700">⚙️ FIXED rule</tspan></text>
+
+<rect x="30" y="120" width="170" height="64" rx="12" fill="none" stroke="#9aa3b2" stroke-width="2"/>
+<text x="115" y="150" font-size="13.5" font-weight="600" fill="#e6e8ec" text-anchor="middle">📇 A card about</text>
+<text x="115" y="169" font-size="13.5" font-weight="600" fill="#e6e8ec" text-anchor="middle">one person</text>
+<path d="M200,152 L238,152" stroke="#9aa3b2" stroke-width="2" marker-end="url(#ar)"/>
+
+<rect x="240" y="116" width="300" height="76" rx="12" fill="none" stroke="#9aa3b2" stroke-width="2.5"/>
+<rect x="240" y="116" width="70" height="20" rx="10" fill="#9aa3b2"/>
+<text x="275" y="130" font-size="11" font-weight="700" fill="#0b0d11" text-anchor="middle">⚙️ RULE</text>
+<text x="258" y="156" font-size="14.5" font-weight="700" fill="#e6e8ec">1 · 🚪 "Allowed to talk?"</text>
+<text x="258" y="176" font-size="12.5" fill="#8b93a3">Did they say yes? Same check every time.</text>
+
+<path d="M390,192 L390,224" stroke="#f85149" stroke-width="2" marker-end="url(#arno)"/>
+<text x="398" y="212" font-size="11.5" fill="#f85149">no → 🤫</text>
+<rect x="300" y="226" width="180" height="42" rx="10" fill="none" stroke="#f85149" stroke-width="2" stroke-dasharray="5 3"/>
+<text x="390" y="252" font-size="12.5" font-weight="600" fill="#e6e8ec" text-anchor="middle">STAY QUIET 🤐 (correct!)</text>
+
+<path d="M540,152 L578,152" stroke="#3fb950" stroke-width="2" marker-end="url(#arok)"/>
+<text x="544" y="143" font-size="11.5" fill="#3fb950">yes ✓</text>
+
+<rect x="580" y="118" width="290" height="72" rx="12" fill="none" stroke="#9aa3b2" stroke-width="2.5"/>
+<rect x="580" y="118" width="70" height="20" rx="10" fill="#9aa3b2"/>
+<text x="615" y="132" font-size="11" font-weight="700" fill="#0b0d11" text-anchor="middle">⚙️ RULE</text>
+<text x="598" y="158" font-size="14.5" font-weight="700" fill="#e6e8ec">2 · 📮 "How to talk?"</text>
+<text x="598" y="178" font-size="12.5" fill="#8b93a3">Use the way they allowed. Read the card.</text>
+
+<path d="M725,190 L725,220" stroke="#3fb950" stroke-width="2" marker-end="url(#arok)"/>
+
+<rect x="580" y="222" width="290" height="82" rx="12" fill="none" stroke="#d29922" stroke-width="2.5"/>
+<rect x="580" y="222" width="128" height="20" rx="10" fill="#d29922"/>
+<text x="644" y="236" font-size="10.5" font-weight="700" fill="#0b0d11" text-anchor="middle">📈 LEARNS + ⚙️RULE</text>
+<text x="598" y="262" font-size="14.5" font-weight="700" fill="#e6e8ec">3 · ⏰ "When to talk?"</text>
+<text x="598" y="281" font-size="12.5" fill="#d29922">📈 learns the send hour from the examples,</text>
+<text x="598" y="297" font-size="12.5" fill="#8b93a3">⚙️ then applies the "their-timezone" rule.</text>
+
+<path d="M579,263 L555,263 Q535,263 535,288 L535,318" stroke="#3fb950" stroke-width="2" marker-end="url(#arok)" fill="none"/>
+
+<rect x="300" y="320" width="440" height="98" rx="12" fill="none" stroke="#6ea8fe" stroke-width="3"/>
+<rect x="300" y="320" width="150" height="20" rx="10" fill="#6ea8fe"/>
+<text x="375" y="334" font-size="10.5" font-weight="700" fill="#0b0d11" text-anchor="middle">🧠 LLM + 📈 LEARNS</text>
+<text x="318" y="360" font-size="14.5" font-weight="700" fill="#6ea8fe">4 · 🖍️ "What to say?" — THIS is the AI part</text>
+<text x="318" y="381" font-size="12.5" fill="#8b93a3">🧠 the LLM writes the actual sentences, and</text>
+<text x="318" y="398" font-size="12.5" fill="#d29922">📈 copies the tone/length from example messages.</text>
+<text x="318" y="413" font-size="12" fill="#6ea8fe" font-style="italic">it only WRITES — it never decides to send.</text>
+
+<path d="M520,418 L520,452" stroke="#9aa3b2" stroke-width="2" marker-end="url(#ar)"/>
+
+<rect x="280" y="454" width="480" height="118" rx="12" fill="none" stroke="#f85149" stroke-width="3"/>
+<rect x="280" y="454" width="220" height="20" rx="10" fill="#f85149"/>
+<text x="390" y="468" font-size="10.5" font-weight="700" fill="#0b0d11" text-anchor="middle">⚙️ FIXED RULE — never LLM, never learns</text>
+<text x="300" y="496" font-size="15" font-weight="800" fill="#f85149">5 · 🛡️ THE SAFETY INSPECTOR</text>
+<text x="300" y="518" font-size="12.5" fill="#e6e8ec">⚖️ unfair words (fair housing) · 🔒 private info · 🚪 real opt-out</text>
+<text x="300" y="538" font-size="12.5" fill="#8b93a3">A plain checklist. Same every time. Can't be sweet-talked.</text>
+<text x="300" y="559" font-size="12" fill="#f85149" font-style="italic">The LLM gets NO vote here — on purpose.</text>
+
+<path d="M280,512 L190,512 Q160,512 160,536 L160,580" stroke="#f85149" stroke-width="2.5" marker-end="url(#arno)" fill="none"/>
+<text x="120" y="530" font-size="11.5" fill="#f85149">unfair →</text>
+<rect x="40" y="582" width="240" height="70" rx="12" fill="none" stroke="#f85149" stroke-width="2.5"/>
+<text x="160" y="608" font-size="14" font-weight="800" fill="#f85149" text-anchor="middle">🛑 STOP. HOLD IT.</text>
+<text x="160" y="629" font-size="11.5" fill="#8b93a3" text-anchor="middle">A grown-up checks it. We never</text>
+<text x="160" y="645" font-size="11.5" fill="#8b93a3" text-anchor="middle">erase the word and sneak it out.</text>
+
+<path d="M760,512 L800,512 Q828,512 828,540 L828,636 Q828,662 800,662 L700,662" stroke="#3fb950" stroke-width="2.5" marker-end="url(#arok)" fill="none"/>
+<text x="778" y="530" font-size="11.5" fill="#3fb950">clean ✓</text>
+<rect x="450" y="636" width="250" height="66" rx="12" fill="none" stroke="#3fb950" stroke-width="2.5"/>
+<text x="575" y="664" font-size="14.5" font-weight="800" fill="#3fb950" text-anchor="middle">✅ SEND IT! 💌</text>
+<text x="575" y="686" font-size="11.5" fill="#8b93a3" text-anchor="middle">friendly, on time, and fair</text>
+
+<rect x="30" y="726" width="840" height="60" rx="10" fill="none" stroke="#9aa3b2" stroke-width="1"/>
+<text x="46" y="750" font-size="13.5" font-weight="700" fill="#e6e8ec">The AI is in ONE box (4). The "learning" is tiny: just the send-time and the writing tone.</text>
+<text x="46" y="772" font-size="13" fill="#8b93a3">Everything that must never break — consent (1) and safety (5) — is a fixed rule the AI can't touch.</text>
+</svg>

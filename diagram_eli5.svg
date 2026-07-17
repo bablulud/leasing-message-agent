@@ -1,0 +1,81 @@
+<svg viewBox="0 0 900 760" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif">
+<rect x="0" y="0" width="900" height="760" fill="#0f1115"/>
+<defs>
+<marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9aa3b2"/></marker>
+<marker id="arok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3fb950"/></marker>
+<marker id="arno" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f85149"/></marker>
+</defs>
+
+<text x="30" y="40" font-size="23" font-weight="700" fill="#e6e8ec">The robot mail-sender is like a game with checkpoints 🎮</text>
+<text x="30" y="66" font-size="14" fill="#8b93a3">A message can only be sent if it gets a ✓ at every checkpoint. One ✗ and it stops.</text>
+
+<rect x="30" y="92" width="180" height="70" rx="12" fill="none" stroke="#9aa3b2" stroke-width="2"/>
+<text x="120" y="123" font-size="14" font-weight="600" fill="#e6e8ec" text-anchor="middle">📇 A card about</text>
+<text x="120" y="143" font-size="14" font-weight="600" fill="#e6e8ec" text-anchor="middle">one person</text>
+<path d="M210,127 L250,127" stroke="#9aa3b2" stroke-width="2" marker-end="url(#ar)"/>
+
+<rect x="252" y="88" width="300" height="78" rx="12" fill="none" stroke="#9aa3b2" stroke-width="2"/>
+<text x="270" y="115" font-size="15" font-weight="700" fill="#e6e8ec">1 · 🚪 "Are we ALLOWED to talk?"</text>
+<text x="270" y="137" font-size="13" fill="#8b93a3">Did this person say "yes, you may text/email me"?</text>
+<text x="270" y="155" font-size="12.5" fill="#8b93a3" font-style="italic">Wanting a text ≠ saying yes to one.</text>
+
+<path d="M402,166 L402,205" stroke="#f85149" stroke-width="2" marker-end="url(#arno)"/>
+<text x="412" y="190" font-size="12" fill="#f85149">no → 🤫</text>
+<rect x="300" y="207" width="205" height="52" rx="12" fill="none" stroke="#f85149" stroke-width="2" stroke-dasharray="5 3"/>
+<text x="402" y="230" font-size="13" font-weight="600" fill="#e6e8ec" text-anchor="middle">STAY QUIET 🤐</text>
+<text x="402" y="248" font-size="11.5" fill="#8b93a3" text-anchor="middle">saying nothing is the RIGHT answer</text>
+
+<path d="M552,127 L590,127" stroke="#3fb950" stroke-width="2" marker-end="url(#arok)"/>
+<text x="556" y="118" font-size="12" fill="#3fb950">yes ✓</text>
+
+<rect x="592" y="92" width="278" height="70" rx="12" fill="none" stroke="#9aa3b2" stroke-width="2"/>
+<text x="610" y="120" font-size="15" font-weight="700" fill="#e6e8ec">2 · 📮 "HOW to talk?"</text>
+<text x="610" y="142" font-size="13" fill="#8b93a3">Pick text or email — the one they said</text>
+<text x="610" y="157" font-size="13" fill="#8b93a3">yes to. And what to ask them to do.</text>
+
+<path d="M731,162 L731,196" stroke="#3fb950" stroke-width="2" marker-end="url(#arok)"/>
+
+<rect x="592" y="198" width="278" height="70" rx="12" fill="none" stroke="#9aa3b2" stroke-width="2"/>
+<text x="610" y="226" font-size="15" font-weight="700" fill="#e6e8ec">3 · ⏰ "WHEN to talk?"</text>
+<text x="610" y="248" font-size="13" fill="#8b93a3">Next morning, in THEIR time zone.</text>
+<text x="610" y="263" font-size="13" fill="#8b93a3">Not the middle of the night.</text>
+
+<path d="M591,233 L560,233 Q540,233 540,258 L540,300" stroke="#3fb950" stroke-width="2" marker-end="url(#arok)" fill="none"/>
+
+<rect x="360" y="302" width="360" height="86" rx="12" fill="none" stroke="#6ea8fe" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="378" y="330" font-size="15" font-weight="700" fill="#6ea8fe">4 · 🖍️ "WHAT to say?"</text>
+<text x="378" y="352" font-size="13" fill="#8b93a3">The word-writing robot fills in the message,</text>
+<text x="378" y="369" font-size="13" fill="#8b93a3">like coloring inside the lines.</text>
+<text x="378" y="384" font-size="12" fill="#6ea8fe" font-style="italic">it only WRITES — it never decides to send</text>
+
+<path d="M540,388 L540,424" stroke="#9aa3b2" stroke-width="2" marker-end="url(#ar)"/>
+
+<rect x="300" y="426" width="480" height="120" rx="12" fill="none" stroke="#f85149" stroke-width="2.5"/>
+<text x="320" y="454" font-size="16" font-weight="800" fill="#f85149">5 · 🛡️ THE SAFETY INSPECTOR</text>
+<text x="320" y="478" font-size="13" fill="#8b93a3">Reads every word AFTER the robot writes. Checks for:</text>
+<text x="330" y="500" font-size="13" fill="#e6e8ec">⚖️ unfair words (fair housing) · 🔒 private info leaking</text>
+<text x="330" y="519" font-size="13" fill="#e6e8ec">🚪 a real way to say "stop messaging me"</text>
+<text x="320" y="539" font-size="12" fill="#f85149" font-style="italic">The robot does NOT get a vote here. The rule wins.</text>
+
+<path d="M300,486 L200,486 Q170,486 170,510 L170,556" stroke="#f85149" stroke-width="2.5" marker-end="url(#arno)" fill="none"/>
+<text x="120" y="505" font-size="12" fill="#f85149">unfair word →</text>
+<rect x="40" y="558" width="270" height="86" rx="12" fill="none" stroke="#f85149" stroke-width="2.5"/>
+<text x="175" y="585" font-size="15" font-weight="800" fill="#f85149" text-anchor="middle">🛑 STOP. DO NOT SEND.</text>
+<text x="175" y="608" font-size="12.5" fill="#8b93a3" text-anchor="middle">A grown-up gets to look at it.</text>
+<text x="175" y="626" font-size="12.5" fill="#8b93a3" text-anchor="middle">We do NOT just erase the bad word</text>
+<text x="175" y="641" font-size="12.5" fill="#8b93a3" text-anchor="middle">and sneak the rest out.</text>
+
+<path d="M540,546 L540,566 Q540,578 528,578 L470,578" stroke="#d29922" stroke-width="2" fill="none" marker-end="url(#ar)"/>
+<rect x="330" y="560" width="140" height="40" rx="10" fill="none" stroke="#d29922" stroke-width="2"/>
+<text x="400" y="585" font-size="11.5" fill="#d29922" text-anchor="middle">tiny fixable oops?</text>
+<path d="M400,560 L400,545 Q400,530 415,530 L540,470" stroke="#d29922" stroke-width="1.5" fill="none" stroke-dasharray="4 3"/>
+<text x="330" y="527" font-size="10.5" fill="#d29922">add "reply STOP", try again (×2)</text>
+
+<path d="M780,486 L820,486 Q850,486 850,510 L850,620 Q850,648 822,648 L720,648" stroke="#3fb950" stroke-width="2.5" marker-end="url(#arok)" fill="none"/>
+<text x="800" y="505" font-size="12" fill="#3fb950">all clean ✓</text>
+<rect x="470" y="622" width="250" height="72" rx="12" fill="none" stroke="#3fb950" stroke-width="2.5"/>
+<text x="595" y="652" font-size="15" font-weight="800" fill="#3fb950" text-anchor="middle">✅ SEND IT! 💌</text>
+<text x="595" y="675" font-size="12" fill="#8b93a3" text-anchor="middle">friendly, on time, and fair</text>
+
+<text x="30" y="726" font-size="12" fill="#8b93a3"><tspan fill="#9aa3b2">▬ rule-guards (always the same)</tspan>    <tspan fill="#6ea8fe">▬ the writing robot (only colors in words)</tspan>    <tspan fill="#f85149">▬ safety (can slam the brakes)</tspan></text>
+</svg>
